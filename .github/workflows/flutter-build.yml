@@ -1495,6 +1495,28 @@ jobs:
             sudo apt-get install -y qemu-user-static
           fi
 
+      # vcpkg's SPDX helpers at VCPKG_COMMIT_ID use string(JSON ... STRING_ENCODE),
+      # which was added in CMake 4.3. Hosted Ubuntu runners still ship CMake 3.31.
+      - name: Install CMake 4.3 for vcpkg
+        shell: bash
+        run: |
+          cmake_version="4.3.3"
+          cmake_arch="${{ matrix.job.arch }}"
+          case "$cmake_arch" in
+            x86_64) cmake_sha256="927b2368a946c37269c3a66225ab00544e756459cdd0b5d0da438694fb9ff802" ;;
+            aarch64) cmake_sha256="9ea38356dbd3e32e51029a3e09a0f2f8e117ef4fbcaad7a21ffb36409bbd5cb4" ;;
+            *) echo "Unsupported CMake architecture: $cmake_arch"; exit 1 ;;
+          esac
+          cmake_archive="cmake-${cmake_version}-linux-${cmake_arch}.tar.gz"
+          curl -fL --retry 3 \
+            "https://github.com/Kitware/CMake/releases/download/v${cmake_version}/${cmake_archive}" \
+            -o "$cmake_archive"
+          echo "${cmake_sha256}  ${cmake_archive}" | sha256sum --check --strict
+          sudo mkdir -p "/opt/cmake-${cmake_version}"
+          sudo tar -xzf "$cmake_archive" --strip-components=1 -C "/opt/cmake-${cmake_version}"
+          echo "/opt/cmake-${cmake_version}/bin" >> "$GITHUB_PATH"
+          "/opt/cmake-${cmake_version}/bin/cmake" --version
+
       - name: Checkout source code
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
