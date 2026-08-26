@@ -635,6 +635,7 @@ message PermissionInfo {
     Restart = 5;
     Recording = 6;
     BlockInput = 7;
+    PrivacyMode = 8;
   }
 
   Permission permission = 1;
@@ -821,20 +822,20 @@ message MessageQuery {
   int32 switch_display = 1;
 }
 
-// Window capture: client -> server
+// Request to start or stop capturing application windows as virtual displays.
 message WindowCaptureRequest {
-  bool start = 1;   // true=start capturing all QQSG windows, false=stop
+  bool start = 1;
 }
 
-// Single window info
+// A captured application window exposed as a virtual display.
 message WindowInfo {
-  int32 display_idx = 1;    // assigned virtual display index
+  int32 display_idx = 1;
   int32 width = 2;
   int32 height = 3;
   string window_title = 4;
 }
 
-// Window capture: server -> client
+// Current window-capture state returned to the controlling peer.
 message WindowCaptureResponse {
   bool success = 1;
   string error = 2;
@@ -948,6 +949,7 @@ message TerminalOpened {
   uint32 pid = 4;
   string service_id = 5;  // Service ID for persistent sessions
   repeated int32 persistent_sessions = 6; // Used to restore the persistent sessions.
+  bool replay_terminal_output = 7; // Whether the next data response replays buffered terminal output.
 }
 
 message TerminalClosed {

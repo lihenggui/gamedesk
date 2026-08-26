@@ -1,4 +1,4 @@
-package me.blocker.gamedesk
+package com.carriez.flutter_hbb
 
 import android.Manifest.permission.*
 import android.annotation.SuppressLint
