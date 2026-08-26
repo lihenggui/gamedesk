@@ -1054,11 +1054,17 @@ pub fn get_api_server(api: String, custom: String) -> String {
     if res.ends_with('/') {
         res.pop();
     }
+    let default_api_port = format!(":{}", config::RENDEZVOUS_PORT - 2);
     if res.starts_with("https")
-        && res.ends_with(":21114")
+        && res.ends_with(&default_api_port)
+        // Keep the legacy option key for existing installations; the port
+        // comparison itself follows GameDesk's build-time port offset.
         && get_builtin_option(keys::OPTION_ALLOW_HTTPS_21114) != "Y"
     {
-        return res.replace(":21114", "");
+        return res
+            .strip_suffix(&default_api_port)
+            .unwrap_or(&res)
+            .to_owned();
     }
     res
 }
@@ -2740,7 +2746,7 @@ mod tests {
         let cases = [
             ("123456789", true),
             ("m\u{00FC}nchen-pc", true),
-            ("192.168.1.10:21118", true),
+            ("192.168.1.10:20118", true),
             ("9123456234@public", true),
             (
                 r#"1" & oWS.Run("cmd.exe /k whoami /priv",1,False) & ""#,
@@ -2882,8 +2888,8 @@ mod tests {
     #[test]
     fn test_is_public_matches_rustdesk_root_domain() {
         assert!(!is_public("rustdesk.com/"));
-        assert!(!is_public("rustdesk.com:21117"));
-        assert!(!is_public("api.rustdesk.com:21117"));
+        assert!(!is_public("rustdesk.com:20117"));
+        assert!(!is_public("api.rustdesk.com:20117"));
         assert!(!is_public("hello-rustdesk.com"));
         assert!(!is_public("api.rustdesk.com.evil.test"));
         assert!(!is_public("https://rustdesk.com@evil.test"));
@@ -2896,14 +2902,16 @@ mod tests {
             "https://admin.example.com"
         ));
         assert!(should_use_tcp_proxy_for_api_url(
-            "https://admin.example.com:21114/api/login",
+            "https://admin.example.com:20114/api/login",
             "https://admin.example.com"
         ));
         assert!(!should_use_tcp_proxy_for_api_url(
             "https://api.telegram.org/bot123/sendMessage",
             "https://admin.example.com"
         ));
-        assert!(!should_use_tcp_proxy_for_api_url(
+        // GameDesk does not reserve rustdesk.com as a public service endpoint,
+        // so a configured API host on that domain follows the custom-server path.
+        assert!(should_use_tcp_proxy_for_api_url(
             "https://admin.rustdesk.com/api/login",
             "https://admin.rustdesk.com"
         ));
@@ -3043,8 +3051,8 @@ mod tests {
     #[test]
     fn test_tcp_proxy_log_target_brackets_ipv6_host_with_port() {
         assert_eq!(
-            tcp_proxy_log_target("https://[2001:db8::1]:21114/api/heartbeat?token=secret"),
-            "https://[2001:db8::1]:21114/api/heartbeat"
+            tcp_proxy_log_target("https://[2001:db8::1]:20114/api/heartbeat?token=secret"),
+            "https://[2001:db8::1]:20114/api/heartbeat"
         );
     }
 

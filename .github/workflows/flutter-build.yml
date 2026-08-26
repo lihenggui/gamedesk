@@ -30,6 +30,9 @@ on:
 # in this file!
 
 env:
+  # Optional repository Actions secret. An unset secret preserves upstream ports;
+  # an invalid non-empty value intentionally fails compilation in hbb_common.
+  GAMEDESK_PORT_OFFSET: "${{ secrets.GAMEDESK_PORT_OFFSET }}"
   SCITER_RUST_VERSION: "1.75" # https://github.com/rustdesk/rustdesk/discussions/7503, also 1.78 has ABI change which causes our sciter version not working, https://blog.rust-lang.org/2024/03/30/i128-layout-update.html
   RUST_VERSION: "1.75" # sciter failed on m1 with 1.78 because of https://blog.rust-lang.org/2024/03/30/i128-layout-update.html
   MAC_RUST_VERSION: "1.81" # 1.81 is requred for macos, because of https://github.com/yury/cidre requires 1.81
@@ -1609,6 +1612,7 @@ jobs:
             --volume "/opt/artifacts:/opt/artifacts"
             -e GAMEDESK_SERVER="${{ secrets.GAMEDESK_SERVER }}"
             -e GAMEDESK_KEY="${{ secrets.GAMEDESK_KEY }}"
+            -e GAMEDESK_PORT_OFFSET="${{ env.GAMEDESK_PORT_OFFSET }}"
           shell: /bin/bash
           install: |
             apt-get update -y
@@ -1930,6 +1934,7 @@ jobs:
           dockerRunArgs: |
             --volume "${PWD}:/workspace"
             --volume "/opt/artifacts:/opt/artifacts"
+            -e GAMEDESK_PORT_OFFSET="${{ env.GAMEDESK_PORT_OFFSET }}"
           shell: /bin/bash
           install: |
             apt-get update -y
@@ -2158,6 +2163,7 @@ jobs:
             ls -l "${PWD}"
           dockerRunArgs: |
             --volume "${PWD}:/workspace"
+            -e GAMEDESK_PORT_OFFSET="${{ env.GAMEDESK_PORT_OFFSET }}"
           shell: /bin/bash
           install: |
             apt-get update
@@ -2418,6 +2424,7 @@ jobs:
             ls -l "${PWD}"
           dockerRunArgs: |
             --volume "${PWD}:/workspace"
+            -e GAMEDESK_PORT_OFFSET="${{ env.GAMEDESK_PORT_OFFSET }}"
           shell: /bin/bash
           install: |
             apt-get update -y

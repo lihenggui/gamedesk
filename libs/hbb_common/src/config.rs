@@ -117,10 +117,68 @@ const CHARS: &[char] = &[
 pub const RENDEZVOUS_SERVERS: &[&str] = &["rs-ny.rustdesk.com"];
 pub const RS_PUB_KEY: &str = "OeVuKk5nlHiXp+APNn0Y3pC1Iwpwn44JGqrQCsWqmBw=";
 
-pub const RENDEZVOUS_PORT: i32 = 21116;
-pub const RELAY_PORT: i32 = 21117;
-pub const WS_RENDEZVOUS_PORT: i32 = 21118;
-pub const WS_RELAY_PORT: i32 = 21119;
+const fn parse_gamedesk_port_offset(raw: &str) -> Option<i32> {
+    let bytes = raw.as_bytes();
+    if bytes.is_empty() {
+        return None;
+    }
+
+    let mut index = 0;
+    let mut sign = 1;
+    if bytes[0] == b'-' {
+        sign = -1;
+        index = 1;
+    } else if bytes[0] == b'+' {
+        index = 1;
+    }
+    if index == bytes.len() {
+        return None;
+    }
+
+    let mut value = 0i32;
+    while index < bytes.len() {
+        let digit = bytes[index];
+        if digit < b'0' || digit > b'9' {
+            return None;
+        }
+        let digit = (digit - b'0') as i32;
+        if value > (i32::MAX - digit) / 10 {
+            return None;
+        }
+        value = value * 10 + digit;
+        index += 1;
+    }
+
+    let offset = sign * value;
+    if offset < 1 - 21114 || offset > u16::MAX as i32 - 21119 {
+        return None;
+    }
+    Some(offset)
+}
+
+const fn gamedesk_port_offset(raw: Option<&str>) -> i32 {
+    let Some(raw) = raw else {
+        return 0;
+    };
+    if raw.as_bytes().is_empty() {
+        return 0;
+    }
+    match parse_gamedesk_port_offset(raw) {
+        Some(offset) => offset,
+        None => panic!("GAMEDESK_PORT_OFFSET must be a valid port-block offset"),
+    }
+}
+
+/// Build-time offset for the standard RustDesk port block (21114-21119).
+///
+/// A private distribution can set `GAMEDESK_PORT_OFFSET` at build time without
+/// committing its value. Unset or empty values preserve the upstream ports.
+pub const GAMEDESK_PORT_OFFSET: i32 =
+    gamedesk_port_offset(option_env!("GAMEDESK_PORT_OFFSET"));
+pub const RENDEZVOUS_PORT: i32 = 21116 + GAMEDESK_PORT_OFFSET;
+pub const RELAY_PORT: i32 = 21117 + GAMEDESK_PORT_OFFSET;
+pub const WS_RENDEZVOUS_PORT: i32 = 21118 + GAMEDESK_PORT_OFFSET;
+pub const WS_RELAY_PORT: i32 = 21119 + GAMEDESK_PORT_OFFSET;
 
 #[inline]
 pub fn is_service_ipc_postfix(postfix: &str) -> bool {
@@ -3286,6 +3344,20 @@ impl Status {
 #[cfg(test)]
 mod tests {
     use super::{permanent_password::PERMANENT_PASSWORD_ENC_VERSION, *};
+
+    #[test]
+    fn gamedesk_port_offset_is_validated() {
+        assert_eq!(parse_gamedesk_port_offset("-7"), Some(-7));
+        assert_eq!(parse_gamedesk_port_offset("+5"), Some(5));
+        assert_eq!(parse_gamedesk_port_offset("0"), Some(0));
+        assert_eq!(parse_gamedesk_port_offset(""), None);
+        assert_eq!(parse_gamedesk_port_offset("invalid"), None);
+        assert_eq!(parse_gamedesk_port_offset("-21114"), None);
+        assert_eq!(parse_gamedesk_port_offset("44417"), None);
+        assert_eq!(parse_gamedesk_port_offset("2147483647"), None);
+        assert_eq!(gamedesk_port_offset(None), 0);
+        assert_eq!(gamedesk_port_offset(Some("")), 0);
+    }
 
     static CONFIG_STATE_TEST_LOCK: Mutex<()> = Mutex::new(());
 

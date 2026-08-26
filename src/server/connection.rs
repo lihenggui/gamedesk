@@ -7309,31 +7309,31 @@ mod test {
         // Cross server: the peer appends its own server, which must not reject it.
         assert!(id_whitelist_allows(
             &list(&["123456789"]),
-            "123456789@example.com:21116"
+            "123456789@example.com:20116"
         ));
         // Cross server from web, whose server is a WebSocket URI.
         assert!(id_whitelist_allows(
             &list(&["123456789"]),
-            "123456789@wss://example.com:21118/ws/id"
+            "123456789@wss://example.com:20118/ws/id"
         ));
         // A different id is still rejected, suffix or not.
         assert!(!id_whitelist_allows(
             &list(&["123456789"]),
-            "987654321@example.com:21116"
+            "987654321@example.com:20116"
         ));
 
         // An entry pinned to one server keeps matching that exact form.
         assert!(id_whitelist_allows(
-            &list(&["123456789@example.com:21116"]),
-            "123456789@example.com:21116"
+            &list(&["123456789@example.com:20116"]),
+            "123456789@example.com:20116"
         ));
         assert!(!id_whitelist_allows(
-            &list(&["123456789@example.com:21116"]),
-            "123456789@other.com:21116"
+            &list(&["123456789@example.com:20116"]),
+            "123456789@other.com:20116"
         ));
         // ... and no longer matches the bare id, which is the point of pinning.
         assert!(!id_whitelist_allows(
-            &list(&["123456789@example.com:21116"]),
+            &list(&["123456789@example.com:20116"]),
             "123456789"
         ));
 
@@ -7341,17 +7341,17 @@ mod test {
         assert!(id_whitelist_allows(&list(&["abc*"]), "abcdef"));
         assert!(id_whitelist_allows(
             &list(&["abc*"]),
-            "abcdef@example.com:21116"
+            "abcdef@example.com:20116"
         ));
         assert!(id_whitelist_allows(
             &list(&["*"]),
-            "123456789@example.com:21116"
+            "123456789@example.com:20116"
         ));
 
         // Any entry of the list is enough.
         assert!(id_whitelist_allows(
             &list(&["111111111", "123456789", "222222222"]),
-            "123456789@example.com:21116"
+            "123456789@example.com:20116"
         ));
     }
 
