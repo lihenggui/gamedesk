@@ -114,11 +114,14 @@ cd
 
 ### Build
 
+GameDesk vendors `libs/hbb_common`, so a normal anonymous clone is sufficient;
+there are no Git submodules to initialize.
+
 ```sh
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source $HOME/.cargo/env
-git clone --recurse-submodules https://github.com/rustdesk/rustdesk
-cd rustdesk
+git clone https://github.com/lihenggui/gamedesk.git
+cd gamedesk
 mkdir -p target/debug
 wget https://raw.githubusercontent.com/c-smile/sciter-sdk/master/bin.lnx/x64/libsciter-gtk.so
 mv libsciter-gtk.so target/debug
@@ -130,9 +133,8 @@ VCPKG_ROOT=$HOME/vcpkg cargo run
 Begin by cloning the repository and building the Docker container:
 
 ```sh
-git clone https://github.com/rustdesk/rustdesk
-cd rustdesk
-git submodule update --init --recursive
+git clone https://github.com/lihenggui/gamedesk.git
+cd gamedesk
 docker build -t "rustdesk-builder" .
 ```
 
@@ -178,4 +180,3 @@ Please ensure that you run these commands from the root of the RustDesk reposito
 ![File Transfer](https://github.com/rustdesk/rustdesk/assets/28412477/39511ad3-aa9a-4f8c-8947-1cce286a46ad)
 
 ![TCP Tunneling](https://github.com/rustdesk/rustdesk/assets/28412477/78e8708f-e87e-4570-8373-1360033ea6c5)
-
