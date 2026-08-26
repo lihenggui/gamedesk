@@ -377,6 +377,15 @@ pub fn close(id: i32) {
     };
 }
 
+/// Like `close`, but says the CM's WINDOW closed rather than a person disconnecting this peer.
+/// See `ipc::Data::CmWindowClosed`.
+#[cfg(target_os = "linux")]
+pub fn close_window(id: i32) {
+    if let Some(client) = CLIENTS.read().unwrap().get(&id) {
+        allow_err!(client.tx.send(Data::CmWindowClosed));
+    };
+}
+
 #[inline]
 pub fn remove(id: i32) {
     CLIENTS.write().unwrap().remove(&id);
@@ -1686,6 +1695,19 @@ pub fn quit_cm() {
     // in case of std::process::exit not work
     log::info!("quit cm");
     CLIENTS.write().unwrap().clear();
+    // `quit_gui()` ends the process on Windows and macOS, but on Linux it calls
+    // `gtk_main_quit()`, which has no effect in the Flutter connection manager:
+    // `flutter/linux/main.cc` runs `g_application_run()` (GtkApplication), so
+    // `gtk_main()` is never called. Exit directly instead, otherwise this
+    // process keeps running while no longer serving the `_cm` ipc endpoint, so
+    // the server can't reuse it and spawns one more connection manager.
+    //
+    // NOTE: a client merely disconnecting does not come here, the Flutter side
+    // closes the window then, so this is a fallback rather than an explanation
+    // for the stale processes of #15698.
+    #[cfg(all(target_os = "linux", feature = "flutter"))]
+    std::process::exit(0);
+    #[cfg(not(all(target_os = "linux", feature = "flutter")))]
     crate::platform::quit_gui();
 }
 
