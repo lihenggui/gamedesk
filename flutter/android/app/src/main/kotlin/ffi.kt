@@ -5,7 +5,7 @@ package ffi
 import android.content.Context
 import java.nio.ByteBuffer
 
-import me.blocker.gamedesk.RdClipboardManager
+import com.carriez.flutter_hbb.RdClipboardManager
 
 object FFI {
     init {
@@ -21,9 +21,11 @@ object FFI {
     external fun onAudioFrameUpdate(buf: ByteBuffer)
     external fun translateLocale(localeName: String, input: String): String
     external fun refreshScreen()
+    external fun closeAllSessions()
     external fun setFrameRawEnable(name: String, value: Boolean)
     external fun setCodecInfo(info: String)
     external fun getLocalOption(key: String): String
+    external fun getBuildinOption(key: String): String
     external fun onClipboardUpdate(clips: ByteBuffer)
     external fun isServiceClipboardEnabled(): Boolean
 }

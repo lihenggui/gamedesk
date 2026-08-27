@@ -767,10 +767,6 @@ class GamedeskImpl {
     throw UnimplementedError("mainGetError");
   }
 
-  bool mainShowOption({required String key, dynamic hint}) {
-    throw UnimplementedError("mainShowOption");
-  }
-
   Future<void> mainSetOption(
       {required String key, required String value, dynamic hint}) {
     js.context.callMethod('setByName', [
@@ -1164,10 +1160,6 @@ class GamedeskImpl {
     return Future.value('');
   }
 
-  Future<String> mainGetPermanentPassword({dynamic hint}) {
-    return Future.value('');
-  }
-
   Future<String> mainGetFingerprint({dynamic hint}) {
     return Future.value('');
   }
@@ -1351,9 +1343,9 @@ class GamedeskImpl {
     throw UnimplementedError("mainUpdateTemporaryPassword");
   }
 
-  Future<void> mainSetPermanentPassword(
+  Future<bool> mainSetPermanentPasswordWithResult(
       {required String password, dynamic hint}) {
-    throw UnimplementedError("mainSetPermanentPassword");
+    throw UnimplementedError("mainSetPermanentPasswordWithResult");
   }
 
   Future<bool> mainCheckSuperUserPermission({dynamic hint}) {
@@ -1384,6 +1376,10 @@ class GamedeskImpl {
   Future<void> cmLoginRes(
       {required int connId, required bool res, dynamic hint}) {
     throw UnimplementedError("cmLoginRes");
+  }
+
+  Future<void> cmCloseConnectionWindow({required int connId, dynamic hint}) {
+    throw UnimplementedError("cmCloseConnectionWindow");
   }
 
   Future<void> cmCloseConnection({required int connId, dynamic hint}) {
@@ -1547,7 +1543,10 @@ class GamedeskImpl {
 
   Future<void> mainAccountAuth(
       {required String op, required bool rememberMe, dynamic hint}) {
-    return Future(() => js.context.callMethod('setByName', [
+    // Safari only allows auth popups while handling the original user gesture.
+    // Use Future.sync so the JS call runs synchronously (pre-opening the OIDC
+    // window) while any interop error still surfaces as a Future error.
+    return Future.sync(() => js.context.callMethod('setByName', [
           'account_auth',
           jsonEncode({'op': op, 'remember': rememberMe})
         ]));
@@ -1614,8 +1613,8 @@ class GamedeskImpl {
   }
 
   bool isCustomClient({dynamic hint}) {
-    // is_custom_client() checks if app name is not "GameDesk"
-    return mainGetAppNameSync(hint: hint) != "GameDesk";
+    // Match the Rust implementation: any non-RustDesk build is a custom client.
+    return mainGetAppNameSync(hint: hint) != "RustDesk";
   }
 
   bool isDisableSettings({dynamic hint}) {
@@ -1650,78 +1649,6 @@ class GamedeskImpl {
     throw UnimplementedError("sendUrlScheme");
   }
 
-  Future<void> pluginEvent(
-      {required String id,
-      required String peer,
-      required Uint8List event,
-      dynamic hint}) {
-    throw UnimplementedError("pluginEvent");
-  }
-
-  Stream<EventToUI> pluginRegisterEventStream(
-      {required String id, dynamic hint}) {
-    throw UnimplementedError("pluginRegisterEventStream");
-  }
-
-  String? pluginGetSessionOption(
-      {required String id,
-      required String peer,
-      required String key,
-      dynamic hint}) {
-    throw UnimplementedError("pluginGetSessionOption");
-  }
-
-  Future<void> pluginSetSessionOption(
-      {required String id,
-      required String peer,
-      required String key,
-      required String value,
-      dynamic hint}) {
-    throw UnimplementedError("pluginSetSessionOption");
-  }
-
-  String? pluginGetSharedOption(
-      {required String id, required String key, dynamic hint}) {
-    throw UnimplementedError("pluginGetSharedOption");
-  }
-
-  Future<void> pluginSetSharedOption(
-      {required String id,
-      required String key,
-      required String value,
-      dynamic hint}) {
-    throw UnimplementedError("pluginSetSharedOption");
-  }
-
-  Future<void> pluginReload({required String id, dynamic hint}) {
-    throw UnimplementedError("pluginReload");
-  }
-
-  void pluginEnable({required String id, required bool v, dynamic hint}) {
-    throw UnimplementedError("pluginEnable");
-  }
-
-  bool pluginIsEnabled({required String id, dynamic hint}) {
-    throw UnimplementedError("pluginIsEnabled");
-  }
-
-  bool pluginFeatureIsEnabled({dynamic hint}) {
-    throw UnimplementedError("pluginFeatureIsEnabled");
-  }
-
-  Future<void> pluginSyncUi({required String syncTo, dynamic hint}) {
-    throw UnimplementedError("pluginSyncUi");
-  }
-
-  Future<void> pluginListReload({dynamic hint}) {
-    throw UnimplementedError("pluginListReload");
-  }
-
-  Future<void> pluginInstall(
-      {required String id, required bool b, dynamic hint}) {
-    throw UnimplementedError("pluginInstall");
-  }
-
   bool isSupportMultiUiSession({required String version, dynamic hint}) {
     return versionToNumber(v: version) > versionToNumber(v: '1.2.4');
   }
@@ -1735,7 +1662,7 @@ class GamedeskImpl {
   }
 
   String mainSupportedPrivacyModeImpls({dynamic hint}) {
-    throw UnimplementedError("mainSupportedPrivacyModeImpls");
+    return '[]';
   }
 
   String mainSupportedInputSource({dynamic hint}) {
@@ -1920,6 +1847,15 @@ class GamedeskImpl {
     throw UnimplementedError("sessionHandleScreenshot");
   }
 
+  Future<void> sessionSetCommon(
+      {required UuidValue sessionId, required String key, required String value, dynamic hint}) {
+      js.context.callMethod('setByName', [
+        'common',
+        jsonEncode({'name': key, 'value': value})
+      ]);
+      return Future.value();
+  }
+
   String? sessionGetCommonSync(
       {required UuidValue sessionId,
       required String key,
@@ -2040,7 +1976,14 @@ class GamedeskImpl {
   }
 
   String mainResolveAvatarUrl({required String avatar, dynamic hint}) {
-    return js.context.callMethod('getByName', ['resolve_avatar_url', avatar])?.toString() ?? avatar;
+    return js.context.callMethod(
+            'getByName', ['resolve_avatar_url', avatar])?.toString() ??
+        avatar;
+  }
+
+  Future<String> mainDeployDevice(
+      {required String token, required String id, dynamic hint}) {
+    throw UnimplementedError("mainDeployDevice");
   }
 
   void dispose() {}

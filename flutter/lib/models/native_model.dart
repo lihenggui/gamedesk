@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
+import 'dart:ui' as ui;
 
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:external_path/external_path.dart';
@@ -24,6 +25,23 @@ final class RgbaFrame extends Struct {
 typedef F3 = Pointer<Uint8> Function(Pointer<Utf8>, int);
 typedef F3Dart = Pointer<Uint8> Function(Pointer<Utf8>, Int32);
 typedef HandleEvent = Future<void> Function(Map<String, dynamic> evt);
+
+/// The Linux bundle keeps the core library at lib/libgamedesk.so next to the
+/// executable. Prefer that copy, mirroring flutter/linux/main.cc: the plain
+/// name relies on the loader search path, which repackaged installs may not
+/// cover. https://github.com/rustdesk/rustdesk/discussions/14407
+DynamicLibrary _openLinuxCoreLib() {
+  final bundled =
+      '${File(Platform.resolvedExecutable).parent.path}/lib/libgamedesk.so';
+  try {
+    if (File(bundled).existsSync()) {
+      return DynamicLibrary.open(bundled);
+    }
+  } catch (e) {
+    debugPrint("Failed to load '$bundled': $e");
+  }
+  return DynamicLibrary.open('libgamedesk.so');
+}
 
 /// FFI wrapper around the native Rust core.
 /// Hides the platform differences.
@@ -60,7 +78,11 @@ class PlatformFFI {
   }
 
   bool registerEventHandler(
-      String eventName, String handlerName, HandleEvent handler, {bool replace = false}) {
+    String eventName,
+    String handlerName,
+    HandleEvent handler, {
+    bool replace = false,
+  }) {
     debugPrint('registerEventHandler $eventName $handlerName');
     var handlers = _eventHandlers[eventName];
     if (handlers == null) {
@@ -109,10 +131,16 @@ class PlatformFFI {
       _ffiBind.sessionNextRgba(sessionId: sessionId, display: display);
   void registerPixelbufferTexture(SessionID sessionId, int display, int ptr) =>
       _ffiBind.sessionRegisterPixelbufferTexture(
-          sessionId: sessionId, display: display, ptr: ptr);
+        sessionId: sessionId,
+        display: display,
+        ptr: ptr,
+      );
   void registerGpuTexture(SessionID sessionId, int display, int ptr) =>
       _ffiBind.sessionRegisterGpuTexture(
-          sessionId: sessionId, display: display, ptr: ptr);
+        sessionId: sessionId,
+        display: display,
+        ptr: ptr,
+      );
 
   /// Init the FFI class, loads the native Rust core library.
   Future<void> init(String appType) async {
@@ -120,16 +148,16 @@ class PlatformFFI {
     final dylib = isAndroid
         ? DynamicLibrary.open('libgamedesk.so')
         : isLinux
-            ? DynamicLibrary.open('libgamedesk.so')
-            : isWindows
-                ? DynamicLibrary.open('libgamedesk.dll')
-                :
-                // Use executable itself as the dynamic library for MacOS.
-                // Multiple dylib instances will cause some global instances to be invalid.
-                // eg. `lazy_static` objects in rust side, will be created more than once, which is not expected.
-                //
-                // isMacOS? DynamicLibrary.open("liblibgamedesk.dylib") :
-                DynamicLibrary.process();
+        ? _openLinuxCoreLib()
+        : isWindows
+        ? DynamicLibrary.open('libgamedesk.dll')
+        :
+          // Use executable itself as the dynamic library for MacOS.
+          // Multiple dylib instances will cause some global instances to be invalid.
+          // eg. `lazy_static` objects in rust side, will be created more than once, which is not expected.
+          //
+          // isMacOS? DynamicLibrary.open("liblibgamedesk.dylib") :
+          DynamicLibrary.process();
     debugPrint('initializing FFI $_appType');
     try {
       _session_get_rgba = dylib.lookupFunction<F3Dart, F3>("session_get_rgba");
@@ -201,10 +229,12 @@ class PlatformFFI {
       }
       if (isAndroid || isIOS) {
         debugPrint(
-            '_appType:$_appType,info1-id:$id,info2-name:$name,dir:$_dir,homeDir:$_homeDir');
+          '_appType:$_appType,info1-id:$id,info2-name:$name,dir:$_dir,homeDir:$_homeDir',
+        );
       } else {
         debugPrint(
-            '_appType:$_appType,info1-id:$id,info2-name:$name,dir:$_dir');
+          '_appType:$_appType,info1-id:$id,info2-name:$name,dir:$_dir',
+        );
       }
       if (desktopType == DesktopType.cm) {
         await _ffiBind.cmInit();
@@ -212,16 +242,14 @@ class PlatformFFI {
       await _ffiBind.mainDeviceId(id: id);
       await _ffiBind.mainDeviceName(name: name);
       await _ffiBind.mainSetHomeDir(home: _homeDir);
-      await _ffiBind.mainInit(
-        appDir: _dir,
-        customClientConfig: '',
-      );
+      await _ffiBind.mainInit(appDir: _dir, customClientConfig: '');
     } catch (e) {
       debugPrintStack(label: 'initialize failed: $e');
     }
     if (kBuildRendezvousServer.isNotEmpty) {
-      final current =
-          await _ffiBind.mainGetOption(key: 'custom-rendezvous-server');
+      final current = await _ffiBind.mainGetOption(
+        key: 'custom-rendezvous-server',
+      );
       if (current.isEmpty) {
         await _ffiBind.mainSetOption(
           key: 'custom-rendezvous-server',
@@ -256,8 +284,9 @@ class PlatformFFI {
 
   /// Start listening to the Rust core's events and frames.
   void _startListenEvent(GamedeskImpl gamedeskImpl) {
-    final appType =
-        _appType == kAppTypeDesktopRemote ? '$_appType,$kWindowId' : _appType;
+    final appType = _appType == kAppTypeDesktopRemote
+        ? '$_appType,$kWindowId'
+        : _appType;
     var sink = gamedeskImpl.startGlobalEventStream(appType: appType);
     sink.listen((message) {
       () async {
@@ -281,6 +310,13 @@ class PlatformFFI {
   }
 
   void setRgbaCallback(void Function(int, Uint8List) fun) async {}
+
+  // web only, decoded WebCodecs frames arriving as ready-made images
+  void setVideoFrameCallback(
+    Future<void> Function(int, ui.Image, bool Function()) fun,
+  ) {}
+
+  void clearVideoFrameCallback() {}
 
   void startDesktopWebListener() {}
 
