@@ -1983,18 +1983,16 @@ jobs:
       - name: Install vcpkg dependencies
         run: |
           sudo apt install -y libva-dev && apt show libva-dev
+          # chromium.googlesource.com occasionally stalls the runner mid-fetch;
+          # a second attempt starts from vcpkg's partial download cache.
           if ! $VCPKG_ROOT/vcpkg \
             install \
             --triplet x64-linux \
             --x-install-root="$VCPKG_ROOT/installed"; then
-            find "${VCPKG_ROOT}/" -name "*.log" | while read -r _1; do
-              echo "$_1:"
-              echo "======"
-              cat "$_1"
-              echo "======"
-              echo ""
-            done
-            exit 1
+            $VCPKG_ROOT/vcpkg \
+              install \
+              --triplet x64-linux \
+              --x-install-root="$VCPKG_ROOT/installed"
           fi
           head -n 100 "${VCPKG_ROOT}/buildtrees/ffmpeg/build-x64-linux-rel-out.log" || true
         shell: bash
