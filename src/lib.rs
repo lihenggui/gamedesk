@@ -8,16 +8,16 @@ pub use platform::{
     clip_cursor, get_cursor, get_cursor_data, get_cursor_pos, get_focused_display,
     set_cursor_pos, start_os_service,
 };
-#[cfg(not(any(target_os = "ios")))]
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 /// cbindgen:ignore
 mod server;
-#[cfg(not(any(target_os = "ios")))]
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 pub use self::server::*;
 mod client;
 mod lan;
-#[cfg(not(any(target_os = "ios")))]
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 mod rendezvous_mediator;
-#[cfg(not(any(target_os = "ios")))]
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 pub use self::rendezvous_mediator::*;
 /// cbindgen:ignore
 pub mod common;
@@ -47,6 +47,7 @@ mod custom_server;
 mod lang;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 mod port_forward;
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 mod port_forward_mux;
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]

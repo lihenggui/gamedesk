@@ -23,9 +23,10 @@ use crate::{
     common::{is_server, CheckTestNatType},
     privacy_mode,
     privacy_mode::PrivacyModeState,
-    rendezvous_mediator::RendezvousMediator,
     ui_interface::{get_local_option, set_local_option},
 };
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use crate::rendezvous_mediator::RendezvousMediator;
 use bytes::Bytes;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 pub use clipboard::ClipboardFile;
@@ -778,16 +779,19 @@ impl Drop for CheckIfRestart {
             if allow_insecure_tls_fallback_changed {
                 hbb_common::tls::reset_tls_cache();
             }
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
             RendezvousMediator::restart();
         }
         if self.audio_input != Config::get_option("audio-input") {
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
             crate::audio_service::restart();
         }
         if self.voice_call_input != Config::get_option("voice-call-input") {
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
             crate::audio_service::set_voice_call_input_device(
                 Some(Config::get_option("voice-call-input")),
                 true,
-            )
+            );
         }
     }
 }
@@ -803,6 +807,7 @@ async fn handle(data: Data, stream: &mut Connection) {
             );
             allow_err!(stream.send(&Data::SystemInfo(Some(info))).await);
         }
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
         Data::ClickTime(_) => {
             let t = crate::server::CLICK_TIME.load(Ordering::SeqCst);
             allow_err!(stream.send(&Data::ClickTime(t)).await);
@@ -874,6 +879,7 @@ async fn handle(data: Data, stream: &mut Connection) {
                 } else {
                     Config::set_socks(Some(data));
                 }
+                #[cfg(not(any(target_os = "android", target_os = "ios")))]
                 RendezvousMediator::restart();
                 log::info!("socks updated");
             }
@@ -892,6 +898,7 @@ async fn handle(data: Data, stream: &mut Connection) {
             _ => {}
         },
         #[cfg(feature = "flutter")]
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
         Data::VideoConnCount(None) => {
             let n = crate::server::AUTHED_CONNS
                 .lock()
@@ -947,7 +954,14 @@ async fn handle(data: Data, stream: &mut Connection) {
                         None
                     };
                 } else if name == "voice-call-input" {
-                    value = crate::audio_service::get_voice_call_input_device();
+                    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+                    {
+                        value = crate::audio_service::get_voice_call_input_device();
+                    }
+                    #[cfg(any(target_os = "android", target_os = "ios"))]
+                    {
+                        value = None;
+                    }
                 } else if name == "unlock-pin" {
                     value = Some(Config::get_unlock_pin());
                 } else if name == "trusted-devices" {
@@ -985,6 +999,7 @@ async fn handle(data: Data, stream: &mut Connection) {
                 } else if name == "salt" {
                     Config::set_salt(&value);
                 } else if name == "voice-call-input" {
+                    #[cfg(not(any(target_os = "android", target_os = "ios")))]
                     crate::audio_service::set_voice_call_input_device(Some(value), true);
                 } else if name == "unlock-pin" {
                     Config::set_unlock_pin(&value);
@@ -1044,6 +1059,7 @@ async fn handle(data: Data, stream: &mut Connection) {
         Data::TestRendezvousServer => {
             crate::test_rendezvous_server();
         }
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
         Data::Deployed => {
             crate::rendezvous_mediator::NEEDS_DEPLOY.store(false, Ordering::SeqCst);
             crate::rendezvous_mediator::RendezvousMediator::restart();
@@ -1196,12 +1212,15 @@ async fn handle(data: Data, stream: &mut Connection) {
         #[cfg(target_os = "windows")]
         Data::PortForwardSessionCount(c) => match c {
             None => {
+                #[cfg(not(any(target_os = "android", target_os = "ios")))]
                 let count = crate::server::AUTHED_CONNS
                     .lock()
                     .unwrap()
                     .iter()
                     .filter(|c| c.conn_type == crate::server::AuthConnType::PortForward)
                     .count();
+                #[cfg(any(target_os = "android", target_os = "ios"))]
+                let count = 0;
                 allow_err!(
                     stream
                         .send(&Data::PortForwardSessionCount(Some(count)))
@@ -1212,6 +1231,7 @@ async fn handle(data: Data, stream: &mut Connection) {
                 // Port forward session count is only a get value.
             }
         },
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
         Data::ControlPermissionsRemoteModify(_) => {
             use hbb_common::rendezvous_proto::control_permissions::Permission;
             let state =

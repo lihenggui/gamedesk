@@ -4,38 +4,41 @@ use std::{
     time::Duration,
 };
 
-#[cfg(not(any(target_os = "ios")))]
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::{ui_interface::get_builtin_option, Connection};
-use hbb_common::{
-    config::{self, Config, LocalConfig},
-    log,
-    tokio::{self, sync::broadcast, time::Instant},
-};
-use base::config::keys;
+use hbb_common::{config::{self, Config}, tokio::time::Instant};
 use serde::{Deserialize, Serialize};
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use hbb_common::{config::LocalConfig, log, tokio::{self, sync::broadcast}};
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use base::config::keys;
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 use serde_json::{json, Value};
 
 const TIME_HEARTBEAT: Duration = Duration::from_secs(15);
 const UPLOAD_SYSINFO_TIMEOUT: Duration = Duration::from_secs(120);
 const TIME_CONN: Duration = Duration::from_secs(3);
 
-#[cfg(not(any(target_os = "ios")))]
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 lazy_static::lazy_static! {
     static ref SENDER : Mutex<broadcast::Sender<Vec<i32>>> = Mutex::new(start_hbbs_sync());
+}
+
+lazy_static::lazy_static! {
     static ref PRO: Arc<Mutex<bool>> = Default::default();
 }
 
-#[cfg(not(any(target_os = "ios")))]
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 pub fn start() {
     let _sender = SENDER.lock().unwrap();
 }
 
-#[cfg(not(target_os = "ios"))]
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 pub fn signal_receiver() -> broadcast::Receiver<Vec<i32>> {
     SENDER.lock().unwrap().subscribe()
 }
 
-#[cfg(not(any(target_os = "ios")))]
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 fn start_hbbs_sync() -> broadcast::Sender<Vec<i32>> {
     let (tx, _rx) = broadcast::channel::<Vec<i32>>(16);
     std::thread::spawn(move || start_hbbs_sync_async());
@@ -82,7 +85,7 @@ impl InfoUploaded {
     }
 }
 
-#[cfg(not(any(target_os = "ios")))]
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 #[tokio::main(flavor = "current_thread")]
 async fn start_hbbs_sync_async() {
     let mut interval = crate::rustdesk_interval(tokio::time::interval_at(

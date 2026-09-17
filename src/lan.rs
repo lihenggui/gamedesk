@@ -1,9 +1,10 @@
-#[cfg(not(target_os = "ios"))]
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 use hbb_common::whoami;
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use hbb_common::config::Config;
 use hbb_common::{
     allow_err,
     anyhow::bail,
-    config::Config,
     config::{self, RENDEZVOUS_PORT},
     log,
     protobuf::Message as _,
@@ -23,7 +24,7 @@ use std::{
 
 type Message = RendezvousMessage;
 
-#[cfg(not(target_os = "ios"))]
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 pub(super) fn start_listening() -> ResultType<()> {
     let addr = SocketAddr::from(([0, 0, 0, 0], get_broadcast_port()));
     let socket = std::net::UdpSocket::bind(addr)?;

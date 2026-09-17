@@ -59,6 +59,7 @@ impl KcpStream {
         ))
     }
 
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     pub async fn accept(
         udp_socket: Arc<UdpSocket>,
         timeout: std::time::Duration,

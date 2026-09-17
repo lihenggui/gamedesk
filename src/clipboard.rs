@@ -9,6 +9,7 @@ use std::{
     time::Duration,
 };
 
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 pub const CLIPBOARD_NAME: &'static str = "clipboard";
 #[cfg(feature = "unix-file-copy-paste")]
 pub const FILE_CLIPBOARD_NAME: &'static str = "file-clipboard";

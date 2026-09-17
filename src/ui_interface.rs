@@ -445,7 +445,7 @@ pub fn set_option(key: String, value: String) {
             }
         }
     } else if &key == "audio-input" {
-        #[cfg(not(target_os = "ios"))]
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
         crate::audio_service::restart();
     }
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -517,10 +517,6 @@ pub fn set_socks(proxy: String, username: String, password: String) {
             Config::set_socks(Some(socks));
         }
         log::info!("socks updated");
-    }
-    #[cfg(target_os = "android")]
-    {
-        crate::RendezvousMediator::restart();
     }
 }
 
@@ -1127,13 +1123,6 @@ pub fn deploy_device(token: String, new_id: Option<String>) -> DeployResult {
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             if let Err(err) = ipc::notify_deployed() {
                 log::warn!("Failed to notify deployed state: {}", err);
-            }
-            #[cfg(target_os = "android")]
-            {
-                crate::rendezvous_mediator::NEEDS_DEPLOY
-                    .store(false, std::sync::atomic::Ordering::SeqCst);
-                crate::rendezvous_mediator::reset_needs_deploy_notification();
-                crate::rendezvous_mediator::RendezvousMediator::restart();
             }
             DeployResult::Ok
         }

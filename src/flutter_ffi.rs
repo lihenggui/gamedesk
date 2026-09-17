@@ -1575,11 +1575,11 @@ pub fn main_is_option_fixed(key: String) -> SyncReturn<bool> {
 }
 
 pub fn main_get_main_display() -> SyncReturn<String> {
-    #[cfg(target_os = "ios")]
+    #[cfg(any(target_os = "android", target_os = "ios"))]
     let display_info = "".to_owned();
-    #[cfg(not(target_os = "ios"))]
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     let mut display_info = "".to_owned();
-    #[cfg(not(target_os = "ios"))]
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     {
         #[cfg(not(target_os = "linux"))]
         let is_linux_wayland = false;
@@ -1620,11 +1620,11 @@ pub fn main_get_main_display() -> SyncReturn<String> {
 // No need to check if is on Wayland in this function.
 // The Flutter side gets display information on Wayland using a different method.
 pub fn main_get_displays() -> SyncReturn<String> {
-    #[cfg(target_os = "ios")]
+    #[cfg(any(target_os = "android", target_os = "ios"))]
     let display_info = "".to_owned();
-    #[cfg(not(target_os = "ios"))]
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     let mut display_info = "".to_owned();
-    #[cfg(not(target_os = "ios"))]
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     if let Ok(displays) = crate::display_service::try_get_displays() {
         let displays = displays
             .iter()

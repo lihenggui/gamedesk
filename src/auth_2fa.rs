@@ -155,6 +155,7 @@ impl TelegramBot {
 }
 
 // https://gist.github.com/dideler/85de4d64f66c1966788c1b2304b9caf1
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 pub async fn send_2fa_code_to_telegram(text: &str, bot: TelegramBot) -> ResultType<()> {
     let url = format!("https://api.telegram.org/bot{}/sendMessage", bot.token_str);
     let params = serde_json::json!({"chat_id": bot.chat_id, "text": text});

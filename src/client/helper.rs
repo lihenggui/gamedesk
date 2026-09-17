@@ -1,4 +1,6 @@
-use base::message_proto::{Message, VoiceCallRequest, VoiceCallResponse};
+use base::message_proto::{Message, VoiceCallRequest};
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use base::message_proto::VoiceCallResponse;
 use hbb_common::get_time;
 use scrap::CodecFormat;
 use std::collections::HashMap;
@@ -23,6 +25,7 @@ pub fn new_voice_call_request(is_connect: bool) -> Message {
     msg
 }
 
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 #[inline]
 pub fn new_voice_call_response(request_timestamp: i64, accepted: bool) -> Message {
     let mut resp = VoiceCallResponse::new();
