@@ -3,11 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:debounce_throttle/debounce_throttle.dart';
-import 'package:flutter_hbb/consts.dart';
-import 'package:flutter_hbb/models/model.dart';
-import 'package:flutter_hbb/models/platform_model.dart';
-import 'package:flutter_hbb/utils/scale.dart';
-import 'package:flutter_hbb/common.dart';
+import 'package:gamedesk/consts.dart';
+import 'package:gamedesk/models/model.dart';
+import 'package:gamedesk/models/platform_model.dart';
+import 'package:gamedesk/utils/scale.dart';
+import 'package:gamedesk/common.dart';
 
 /// Base class providing shared custom scale control logic for both mobile and desktop widgets.
 /// Implementations must provide [ffi] and [onScaleChanged] getters.

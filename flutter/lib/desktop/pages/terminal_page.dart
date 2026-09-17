@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_hbb/common.dart';
-import 'package:flutter_hbb/desktop/widgets/tabbar_widget.dart';
-import 'package:flutter_hbb/models/model.dart';
-import 'package:flutter_hbb/models/terminal_model.dart';
-import 'package:flutter_hbb/models/terminal_mouse_handler.dart';
+import 'package:gamedesk/common.dart';
+import 'package:gamedesk/desktop/widgets/tabbar_widget.dart';
+import 'package:gamedesk/models/model.dart';
+import 'package:gamedesk/models/terminal_model.dart';
+import 'package:gamedesk/models/terminal_mouse_handler.dart';
 import 'terminal_connection_manager.dart';
 
 class TerminalPage extends StatefulWidget {

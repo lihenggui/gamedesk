@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_hbb/mobile/pages/settings_page.dart';
-import 'package:flutter_hbb/web/settings_page.dart';
+import 'package:gamedesk/mobile/pages/settings_page.dart';
+import 'package:gamedesk/web/settings_page.dart';
 import 'package:get/get.dart';
 import '../../common.dart';
 import '../../common/widgets/chat_page.dart';

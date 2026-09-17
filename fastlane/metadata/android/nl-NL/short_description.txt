@@ -1,1 +1,1 @@
-Een open-source toepassing voor bureaublad op afstand, het open-source alternatief voor TeamViewer.
+Een client voor bureaublad op afstand om uw pc vanaf uw Android-apparaat te bedienen

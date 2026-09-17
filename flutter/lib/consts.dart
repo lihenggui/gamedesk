@@ -1,7 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hbb/common.dart';
-import 'package:flutter_hbb/models/state_model.dart';
+import 'package:gamedesk/common.dart';
+import 'package:gamedesk/models/state_model.dart';
 import 'package:get/get.dart';
 
 const int kMaxVirtualDisplayCount = 4;
@@ -463,8 +463,6 @@ const kAndroid13Notification = "android.permission.POST_NOTIFICATIONS";
 /// Android channel invoke type key
 class AndroidChannel {
   static final kStartAction = "start_action";
-  static final kGetStartOnBootOpt = "get_start_on_boot_opt";
-  static final kSetStartOnBootOpt = "set_start_on_boot_opt";
   static final kSyncAppDirConfigPath = "sync_app_dir";
   static final kPickImportFiles = "pick_import_files";
   static final kImportFile = "import_file";

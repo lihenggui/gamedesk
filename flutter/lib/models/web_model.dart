@@ -11,12 +11,12 @@ import 'dart:ui' as ui;
 import 'dart:ui_web' as ui_web;
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter_hbb/common/widgets/login.dart';
-import 'package:flutter_hbb/models/state_model.dart';
-import 'package:flutter_hbb/models/web_video_frame_queue.dart';
+import 'package:gamedesk/common/widgets/login.dart';
+import 'package:gamedesk/models/state_model.dart';
+import 'package:gamedesk/models/web_video_frame_queue.dart';
 
-import 'package:flutter_hbb/web/bridge.dart';
-import 'package:flutter_hbb/common.dart';
+import 'package:gamedesk/web/bridge.dart';
+import 'package:gamedesk/common.dart';
 import 'package:uuid/uuid.dart';
 
 final List<StreamSubscription<MouseEvent>> mouseListeners = [];

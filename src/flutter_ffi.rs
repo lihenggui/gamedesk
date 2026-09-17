@@ -977,42 +977,6 @@ pub fn main_get_error() -> String {
 }
 
 pub fn main_set_option(key: String, value: String) {
-    #[cfg(target_os = "android")]
-    {
-        let is_permission_option = key.eq(keys::OPTION_ENABLE_CLIPBOARD)
-            || key.eq(keys::OPTION_ENABLE_FILE_TRANSFER)
-            || key.eq(keys::OPTION_ENABLE_AUDIO);
-        let allow_perm_change_in_accept_window = config::option2bool(
-            keys::OPTION_ENABLE_PERM_CHANGE_IN_ACCEPT_WINDOW,
-            &crate::get_builtin_option(keys::OPTION_ENABLE_PERM_CHANGE_IN_ACCEPT_WINDOW),
-        );
-        if is_permission_option
-            && !allow_perm_change_in_accept_window
-            && crate::ui_cm_interface::has_active_clients()
-        {
-            log::info!(
-                "blocked main_set_option by policy, key={}, value={}",
-                key,
-                value
-            );
-            return;
-        }
-    }
-    #[cfg(target_os = "android")]
-    if key.eq(keys::OPTION_ENABLE_KEYBOARD) {
-        crate::ui_cm_interface::switch_permission_all(
-            "keyboard".to_owned(),
-            config::option2bool(&key, &value),
-        );
-    }
-    #[cfg(target_os = "android")]
-    if key.eq(keys::OPTION_ENABLE_CLIPBOARD) {
-        crate::ui_cm_interface::switch_permission_all(
-            "clipboard".to_owned(),
-            config::option2bool(&key, &value),
-        );
-    }
-
     // If `is_allow_tls_fallback` and https proxy is used, we need to restart rendezvous mediator.
     // No need to check if https proxy is used, because this option does not change frequently
     // and restarting mediator is safe even https proxy is not used.
@@ -1027,8 +991,6 @@ pub fn main_set_option(key: String, value: String) {
             hbb_common::tls::reset_tls_cache();
         }
         set_option(key, value.clone());
-        #[cfg(target_os = "android")]
-        crate::rendezvous_mediator::RendezvousMediator::restart();
         #[cfg(any(target_os = "android", target_os = "ios"))]
         crate::common::test_rendezvous_server();
     } else {
@@ -2133,22 +2095,11 @@ pub fn main_get_data_dir_ios(app_dir: String) -> SyncReturn<String> {
     SyncReturn(data_dir.to_string_lossy().to_string())
 }
 
-pub fn main_stop_service() {
-    #[cfg(target_os = "android")]
-    {
-        config::Config::set_option("stop-service".into(), "Y".into());
-        crate::rendezvous_mediator::RendezvousMediator::restart();
-    }
-}
+// Desktop service management goes through the service IPC; the mobile app
+// never hosts the controlled side, so there is nothing to start or stop here.
+pub fn main_stop_service() {}
 
-pub fn main_start_service() {
-    #[cfg(target_os = "android")]
-    {
-        config::Config::set_option("stop-service".into(), "".into());
-        crate::rendezvous_mediator::reset_needs_deploy_notification();
-        crate::rendezvous_mediator::RendezvousMediator::restart();
-    }
-}
+pub fn main_start_service() {}
 
 pub fn main_update_temporary_password() {
     update_temporary_password();
@@ -2911,49 +2862,8 @@ pub fn session_get_common(
 
 #[cfg(target_os = "android")]
 pub mod server_side {
-    use hbb_common::{config, log};
-    use jni::{
-        errors::{Error as JniError, Result as JniResult},
-        objects::{JClass, JObject, JString},
-        sys::{jboolean, jstring},
-        JNIEnv,
-    };
-
-    use crate::start_server;
-
-    #[no_mangle]
-    pub unsafe extern "system" fn Java_ffi_FFI_startServer(
-        env: JNIEnv,
-        _class: JClass,
-        app_dir: JString,
-        home_dir: JString,
-        custom_client_config: JString,
-    ) {
-        log::debug!("startServer from jvm");
-        let mut env = env;
-        if let Ok(app_dir) = env.get_string(&app_dir) {
-            *config::APP_DIR.write().unwrap() = app_dir.into();
-        }
-        if let Ok(home_dir) = env.get_string(&home_dir) {
-            *config::APP_HOME_DIR.write().unwrap() = home_dir.into();
-        }
-        if let Ok(custom_client_config) = env.get_string(&custom_client_config) {
-            if !custom_client_config.is_empty() {
-                let custom_client_config: String = custom_client_config.into();
-                crate::read_custom_client(&custom_client_config);
-            }
-        }
-        crate::common::apply_build_time_server_config();
-        std::thread::spawn(move || start_server(true));
-    }
-
-    #[no_mangle]
-    pub unsafe extern "system" fn Java_ffi_FFI_startService(_env: JNIEnv, _class: JClass) {
-        log::debug!("startService from jvm");
-        config::Config::set_option("stop-service".into(), "".into());
-        crate::rendezvous_mediator::reset_needs_deploy_notification();
-        crate::rendezvous_mediator::RendezvousMediator::restart();
-    }
+    use hbb_common::log;
+    use jni::{objects::{JClass, JString}, sys::jstring, JNIEnv};
 
     #[no_mangle]
     pub unsafe extern "system" fn Java_ffi_FFI_translateLocale(
@@ -2972,11 +2882,6 @@ pub mod server_side {
             "".into()
         };
         return env.new_string(res).unwrap_or(input).into_raw();
-    }
-
-    #[no_mangle]
-    pub unsafe extern "system" fn Java_ffi_FFI_refreshScreen(_env: JNIEnv, _class: JClass) {
-        crate::server::video_service::refresh()
     }
 
     /// Close outgoing sessions when the UI goes away but the process may not,
@@ -3019,13 +2924,5 @@ pub mod server_side {
             "".into()
         };
         return env.new_string(res).unwrap_or_default().into_raw();
-    }
-
-    #[no_mangle]
-    pub unsafe extern "system" fn Java_ffi_FFI_isServiceClipboardEnabled(
-        env: JNIEnv,
-        _class: JClass,
-    ) -> jboolean {
-        jboolean::from(crate::server::is_clipboard_service_ok())
     }
 }

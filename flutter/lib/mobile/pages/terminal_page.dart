@@ -4,17 +4,17 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_hbb/common.dart';
-import 'package:flutter_hbb/common/widgets/dialog.dart';
-import 'package:flutter_hbb/models/input_modifier_utils.dart';
-import 'package:flutter_hbb/models/model.dart';
-import 'package:flutter_hbb/models/platform_model.dart';
-import 'package:flutter_hbb/models/terminal_copy_shortcut.dart';
-import 'package:flutter_hbb/models/terminal_model.dart';
-import 'package:flutter_hbb/models/terminal_mouse_handler.dart';
-import 'package:flutter_hbb/mobile/terminal_keyboard_utils.dart';
-import 'package:flutter_hbb/web/dummy.dart'
-    if (dart.library.html) 'package:flutter_hbb/web/terminal_font.dart';
+import 'package:gamedesk/common.dart';
+import 'package:gamedesk/common/widgets/dialog.dart';
+import 'package:gamedesk/models/input_modifier_utils.dart';
+import 'package:gamedesk/models/model.dart';
+import 'package:gamedesk/models/platform_model.dart';
+import 'package:gamedesk/models/terminal_copy_shortcut.dart';
+import 'package:gamedesk/models/terminal_model.dart';
+import 'package:gamedesk/models/terminal_mouse_handler.dart';
+import 'package:gamedesk/mobile/terminal_keyboard_utils.dart';
+import 'package:gamedesk/web/dummy.dart'
+    if (dart.library.html) 'package:gamedesk/web/terminal_font.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:xterm/xterm.dart';
 import '../../desktop/pages/terminal_connection_manager.dart';

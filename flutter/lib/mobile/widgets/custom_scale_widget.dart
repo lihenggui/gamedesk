@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_hbb/models/model.dart';
-import 'package:flutter_hbb/common.dart';
-import 'package:flutter_hbb/common/widgets/custom_scale_base.dart';
+import 'package:gamedesk/models/model.dart';
+import 'package:gamedesk/common.dart';
+import 'package:gamedesk/common/widgets/custom_scale_base.dart';
 
 class MobileCustomScaleControls extends StatefulWidget {
   final FFI ffi;
