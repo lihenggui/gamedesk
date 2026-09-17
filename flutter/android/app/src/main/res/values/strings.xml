@@ -1,4 +1,3 @@
 <resources>
     <string name="app_name">GameDesk</string>
-    <string name="accessibility_service_description">Allow other devices to control your phone using virtual touch, when GameDesk screen sharing is established</string>
 </resources>
