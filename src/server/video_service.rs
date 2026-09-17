@@ -1589,6 +1589,8 @@ pub mod window_capture {
             sp: GenericService::new(service_name, true),
             idx: display_idx,
             source: VideoSource::Monitor, // reuse Monitor source type
+            #[cfg(windows)]
+            dxgi_recovery_state: Arc::new(Mutex::new(DxgiRecoveryState::new())),
         };
 
         let sp_clone = vs.sp.clone();
