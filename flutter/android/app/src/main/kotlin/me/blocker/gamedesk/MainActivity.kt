@@ -46,7 +46,7 @@ class MainActivity : FlutterActivity() {
         data class ExportFile(val source: File, val result: MethodChannel.Result) : PendingPicker()
         data class ImportDirectory(val result: MethodChannel.Result) : PendingPicker()
         data class ExportFiles(
-            val sources: List<ExportSource>,
+            val sources: List<File>,
             val rejected: Int,
             val result: MethodChannel.Result
         ) : PendingPicker()
