@@ -6,18 +6,18 @@ import 'package:bot_toast/bot_toast.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_hbb/common/widgets/overlay.dart';
-import 'package:flutter_hbb/desktop/pages/desktop_tab_page.dart';
-import 'package:flutter_hbb/desktop/pages/install_page.dart';
-import 'package:flutter_hbb/desktop/pages/server_page.dart';
-import 'package:flutter_hbb/desktop/screen/desktop_file_transfer_screen.dart';
-import 'package:flutter_hbb/desktop/screen/desktop_view_camera_screen.dart';
-import 'package:flutter_hbb/desktop/screen/desktop_port_forward_screen.dart';
-import 'package:flutter_hbb/desktop/screen/desktop_remote_screen.dart';
-import 'package:flutter_hbb/desktop/screen/desktop_terminal_screen.dart';
-import 'package:flutter_hbb/desktop/widgets/refresh_wrapper.dart';
-import 'package:flutter_hbb/models/state_model.dart';
-import 'package:flutter_hbb/utils/multi_window_manager.dart';
+import 'package:gamedesk/common/widgets/overlay.dart';
+import 'package:gamedesk/desktop/pages/desktop_tab_page.dart';
+import 'package:gamedesk/desktop/pages/install_page.dart';
+import 'package:gamedesk/desktop/pages/server_page.dart';
+import 'package:gamedesk/desktop/screen/desktop_file_transfer_screen.dart';
+import 'package:gamedesk/desktop/screen/desktop_view_camera_screen.dart';
+import 'package:gamedesk/desktop/screen/desktop_port_forward_screen.dart';
+import 'package:gamedesk/desktop/screen/desktop_remote_screen.dart';
+import 'package:gamedesk/desktop/screen/desktop_terminal_screen.dart';
+import 'package:gamedesk/desktop/widgets/refresh_wrapper.dart';
+import 'package:gamedesk/models/state_model.dart';
+import 'package:gamedesk/utils/multi_window_manager.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
@@ -26,7 +26,6 @@ import 'package:window_manager/window_manager.dart';
 import 'common.dart';
 import 'consts.dart';
 import 'mobile/pages/home_page.dart';
-import 'mobile/pages/server_page.dart';
 import 'mobile/widgets/deploy_dialog.dart';
 import 'models/platform_model.dart';
 
@@ -183,6 +182,29 @@ void runMobileApp() async {
   gFFI.userModel.refreshCurrentUser();
   runApp(App());
   await initUniLinks();
+}
+
+/// GameDesk on Android is outgoing-only: the controlled side (services,
+/// notifications, boot receiver) was removed, so the only Kotlin->Flutter
+/// message left is the permission request result.
+void androidChannelInit() {
+  gFFI.setMethodCallHandler((method, arguments) {
+    debugPrint("flutter got android msg,$method,$arguments");
+    try {
+      switch (method) {
+        case "on_android_permission_result":
+          {
+            var type = arguments["type"] as String;
+            var result = arguments["result"] as bool;
+            AndroidPermissionManager.complete(type, result);
+            break;
+          }
+      }
+    } catch (e) {
+      debugPrintStack(label: "MethodCallHandler err:$e");
+    }
+    return "";
+  });
 }
 
 void runMultiWindow(

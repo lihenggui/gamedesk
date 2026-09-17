@@ -3,22 +3,22 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:extended_text/extended_text.dart';
-import 'package:flutter_hbb/common/widgets/dialog.dart';
-import 'package:flutter_hbb/desktop/widgets/dragable_divider.dart';
+import 'package:gamedesk/common/widgets/dialog.dart';
+import 'package:gamedesk/desktop/widgets/dragable_divider.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_breadcrumb/flutter_breadcrumb.dart';
-import 'package:flutter_hbb/desktop/widgets/list_search_action_listener.dart';
-import 'package:flutter_hbb/desktop/widgets/menu_button.dart';
-import 'package:flutter_hbb/desktop/widgets/tabbar_widget.dart';
-import 'package:flutter_hbb/models/file_model.dart';
+import 'package:gamedesk/desktop/widgets/list_search_action_listener.dart';
+import 'package:gamedesk/desktop/widgets/menu_button.dart';
+import 'package:gamedesk/desktop/widgets/tabbar_widget.dart';
+import 'package:gamedesk/models/file_model.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-import 'package:flutter_hbb/web/dummy.dart'
-    if (dart.library.html) 'package:flutter_hbb/web/web_unique.dart';
+import 'package:gamedesk/web/dummy.dart'
+    if (dart.library.html) 'package:gamedesk/web/web_unique.dart';
 
 import '../../consts.dart';
 import '../../desktop/widgets/material_mod_popup_menu.dart' as mod_menu;
@@ -278,7 +278,39 @@ class _FileManagerPageState extends State<FileManagerPage>
                                     item.state != JobState.inProgress,
                                 child: LinearPercentIndicator(
                                   animateFromLastPercent: true,
-                                  center: Text(item.percentText),
+                                  center: SizedBox.expand(
+                                    child: ShaderMask(
+                                      blendMode: BlendMode.srcATop,
+                                      shaderCallback: (bounds) =>
+                                          LinearGradient(
+                                        colors: [
+                                          Colors.white,
+                                          Colors.transparent,
+                                        ],
+                                        stops: [item.percent, item.percent],
+                                      ).createShader(bounds),
+                                      child: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Text.rich(
+                                          TextSpan(
+                                            text: item.percentText,
+                                            children: [
+                                              if (item.recvJobRes)
+                                                TextSpan(
+                                                  text:
+                                                      ' ${readableFileSize(item.speed)}/s',
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w300,
+                                                    color: MyTheme.darkGray,
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
                                   barRadius: Radius.circular(15),
                                   percent: item.percent,
                                   progressColor: MyTheme.accent,
@@ -1094,6 +1126,7 @@ class _FileManagerViewState extends State<FileManagerView> {
                 return element.name.contains(_searchText.value);
               }).toList(growable: false)
             : entries;
+        // Keep rows lazy so large directories only build visible list items.
         final rows = filteredEntries.map((entry) {
           final sizeStr =
               entry.isFile ? readableFileSize(entry.size.toDouble()) : "";
@@ -1276,7 +1309,7 @@ class _FileManagerViewState extends State<FileManagerView> {
                   ],
                 ))),
           );
-        }).toList(growable: false);
+        });
 
         return Column(
           children: [
@@ -1292,7 +1325,7 @@ class _FileManagerViewState extends State<FileManagerView> {
                 controller: scrollController,
                 itemExtent: kDesktopFileTransferRowHeight,
                 itemBuilder: (context, index) {
-                  return rows[index];
+                  return rows.elementAt(index);
                 },
                 itemCount: rows.length,
               ),

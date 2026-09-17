@@ -1,1 +1,1 @@
-Une application de bureau à distance open source, l'alternative open source à TeamViewer.
+Un client de bureau à distance pour contrôler votre PC depuis votre appareil Android

@@ -1,5 +1,5 @@
-import 'package:flutter_hbb/common.dart';
-import 'package:flutter_hbb/models/platform_model.dart';
+import 'package:gamedesk/common.dart';
+import 'package:gamedesk/models/platform_model.dart';
 import 'package:get/get.dart';
 
 import '../consts.dart';

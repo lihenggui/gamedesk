@@ -3,15 +3,15 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_hbb/common.dart';
-import 'package:flutter_hbb/common/shared_state.dart';
-import 'package:flutter_hbb/common/widgets/dialog.dart';
-import 'package:flutter_hbb/common/widgets/login.dart';
-import 'package:flutter_hbb/consts.dart';
-import 'package:flutter_hbb/desktop/widgets/remote_toolbar.dart';
-import 'package:flutter_hbb/models/model.dart';
-import 'package:flutter_hbb/models/platform_model.dart';
-import 'package:flutter_hbb/utils/multi_window_manager.dart';
+import 'package:gamedesk/common.dart';
+import 'package:gamedesk/common/shared_state.dart';
+import 'package:gamedesk/common/widgets/dialog.dart';
+import 'package:gamedesk/common/widgets/login.dart';
+import 'package:gamedesk/consts.dart';
+import 'package:gamedesk/desktop/widgets/remote_toolbar.dart';
+import 'package:gamedesk/models/model.dart';
+import 'package:gamedesk/models/platform_model.dart';
+import 'package:gamedesk/utils/multi_window_manager.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 

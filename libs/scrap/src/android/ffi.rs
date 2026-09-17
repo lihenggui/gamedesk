@@ -9,7 +9,8 @@ use jni::{
     JavaVM,
 };
 
-use hbb_common::{message_proto::MultiClipboards, protobuf::Message};
+use base::message_proto::MultiClipboards;
+use hbb_common::protobuf::Message;
 use jni::errors::{Error as JniError, Result as JniResult};
 use lazy_static::lazy_static;
 use serde::Deserialize;
@@ -54,21 +55,6 @@ impl FrameRaw {
             timeout,
             enable: false,
         }
-    }
-
-    fn set_enable(&mut self, value: bool) {
-        self.enable = value;
-        self.ptr.store(std::ptr::null_mut(), SeqCst);
-        self.len = 0;
-    }
-
-    fn update(&mut self, data: *mut u8, len: usize) {
-        if self.enable.not() {
-            return;
-        }
-        self.len = len;
-        self.ptr.store(data, SeqCst);
-        self.last_update = Instant::now();
     }
 
     // take inner data as slice
@@ -121,34 +107,6 @@ pub fn get_clipboards(client: bool) -> Option<MultiClipboards> {
 }
 
 #[no_mangle]
-pub extern "system" fn Java_ffi_FFI_onVideoFrameUpdate(
-    env: JNIEnv,
-    _class: JClass,
-    buffer: JObject,
-) {
-    let jb = JByteBuffer::from(buffer);
-    if let Ok(data) = env.get_direct_buffer_address(&jb) {
-        if let Ok(len) = env.get_direct_buffer_capacity(&jb) {
-            VIDEO_RAW.lock().unwrap().update(data, len);
-        }
-    }
-}
-
-#[no_mangle]
-pub extern "system" fn Java_ffi_FFI_onAudioFrameUpdate(
-    env: JNIEnv,
-    _class: JClass,
-    buffer: JObject,
-) {
-    let jb = JByteBuffer::from(buffer);
-    if let Ok(data) = env.get_direct_buffer_address(&jb) {
-        if let Ok(len) = env.get_direct_buffer_capacity(&jb) {
-            AUDIO_RAW.lock().unwrap().update(data, len);
-        }
-    }
-}
-
-#[no_mangle]
 pub extern "system" fn Java_ffi_FFI_onClipboardUpdate(
     env: JNIEnv,
     _class: JClass,
@@ -165,43 +123,6 @@ pub extern "system" fn Java_ffi_FFI_onClipboardUpdate(
                     *CLIPBOARDS_HOST.lock().unwrap() = Some(clips);
                 }
             }
-        }
-    }
-}
-
-#[no_mangle]
-pub extern "system" fn Java_ffi_FFI_setFrameRawEnable(
-    env: JNIEnv,
-    _class: JClass,
-    name: JString,
-    value: jboolean,
-) {
-    let mut env = env;
-    if let Ok(name) = env.get_string(&name) {
-        let name: String = name.into();
-        let value = value.eq(&1);
-        if name.eq("video") {
-            VIDEO_RAW.lock().unwrap().set_enable(value);
-        } else if name.eq("audio") {
-            AUDIO_RAW.lock().unwrap().set_enable(value);
-        }
-    };
-}
-
-#[no_mangle]
-pub extern "system" fn Java_ffi_FFI_init(env: JNIEnv, _class: JClass, ctx: JObject) {
-    log::debug!("MainService init from java");
-    if let Ok(jvm) = env.get_java_vm() {
-        let java_vm = jvm.get_java_vm_pointer() as *mut c_void;
-        let mut jvm_lock = JVM.write().unwrap();
-        if jvm_lock.is_none() {
-            *jvm_lock = Some(jvm);
-        }
-        drop(jvm_lock);
-        if let Ok(context) = env.new_global_ref(ctx) {
-            let context_jobject = context.as_obj().as_raw() as *mut c_void;
-            *MAIN_SERVICE_CTX.write().unwrap() = Some(context);
-            init_ndk_context(java_vm, context_jobject);
         }
     }
 }

@@ -2,15 +2,15 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_hbb/common/shared_state.dart';
-import 'package:flutter_hbb/common/widgets/toolbar.dart';
-import 'package:flutter_hbb/consts.dart';
-import 'package:flutter_hbb/common/widgets/gamepad_buttons.dart';
-import 'package:flutter_hbb/common/widgets/virtual_joystick.dart';
-import 'package:flutter_hbb/mobile/widgets/floating_mouse.dart';
-import 'package:flutter_hbb/mobile/widgets/floating_mouse_widgets.dart';
-import 'package:flutter_hbb/mobile/widgets/gesture_help.dart';
-import 'package:flutter_hbb/models/chat_model.dart';
+import 'package:gamedesk/common/shared_state.dart';
+import 'package:gamedesk/common/widgets/toolbar.dart';
+import 'package:gamedesk/consts.dart';
+import 'package:gamedesk/common/widgets/gamepad_buttons.dart';
+import 'package:gamedesk/common/widgets/virtual_joystick.dart';
+import 'package:gamedesk/mobile/widgets/floating_mouse.dart';
+import 'package:gamedesk/mobile/widgets/floating_mouse_widgets.dart';
+import 'package:gamedesk/mobile/widgets/gesture_help.dart';
+import 'package:gamedesk/models/chat_model.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
@@ -177,7 +177,7 @@ class _RemotePageState extends State<RemotePage> with WidgetsBindingObserver {
     // `on_voice_call_closed` should be called when the connection is ended.
     // The inner logic of `on_voice_call_closed` will check if the voice call is active.
     // Only one client is considered here for now.
-    gFFI.chatModel.onVoiceCallClosed("End connetion");
+    gFFI.chatModel.onVoiceCallClosed("End connection");
   }
 
   @override

@@ -5,14 +5,14 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_hbb/common/widgets/connection_page_title.dart';
-import 'package:flutter_hbb/consts.dart';
-import 'package:flutter_hbb/desktop/widgets/popup_menu.dart';
-import 'package:flutter_hbb/models/state_model.dart';
+import 'package:gamedesk/common/widgets/connection_page_title.dart';
+import 'package:gamedesk/consts.dart';
+import 'package:gamedesk/desktop/widgets/popup_menu.dart';
+import 'package:gamedesk/models/state_model.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:window_manager/window_manager.dart';
-import 'package:flutter_hbb/models/peer_model.dart';
+import 'package:gamedesk/models/peer_model.dart';
 
 import '../../common.dart';
 import '../../common/formatter/id_formatter.dart';
@@ -330,12 +330,14 @@ class _ConnectionPageState extends State<ConnectionPage>
   void onConnect(
       {bool isFileTransfer = false,
       bool isViewCamera = false,
-      bool isTerminal = false}) {
+      bool isTerminal = false,
+      bool isTcpTunneling = false}) {
     var id = _idController.id;
     connect(context, id,
         isFileTransfer: isFileTransfer,
         isViewCamera: isViewCamera,
-        isTerminal: isTerminal);
+        isTerminal: isTerminal,
+        isTcpTunneling: isTcpTunneling);
   }
 
   /// UI for the remote ID TextField.
@@ -568,6 +570,14 @@ class _ConnectionPageState extends State<ConnectionPage>
                                       '${translate('Terminal')} (beta)',
                                       () => onConnect(isTerminal: true)
                                     ),
+                                    // `connect` routes this through the
+                                    // desktop path only; the peer card gates
+                                    // it the same way.
+                                    if (isDesktop)
+                                      (
+                                        'TCP tunneling',
+                                        () => onConnect(isTcpTunneling: true)
+                                      ),
                                   ]
                                       .map((e) => MenuEntryButton<String>(
                                             childBuilder: (TextStyle? style) =>

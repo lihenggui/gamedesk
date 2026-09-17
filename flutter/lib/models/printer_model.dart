@@ -1,6 +1,6 @@
-import 'package:flutter_hbb/common.dart';
-import 'package:flutter_hbb/consts.dart';
-import 'package:flutter_hbb/models/platform_model.dart';
+import 'package:gamedesk/common.dart';
+import 'package:gamedesk/consts.dart';
+import 'package:gamedesk/models/platform_model.dart';
 
 class PrinterOptions {
   String action;

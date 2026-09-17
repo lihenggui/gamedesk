@@ -1,8 +1,8 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:debounce_throttle/debounce_throttle.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hbb/common.dart';
-import 'package:flutter_hbb/models/platform_model.dart';
+import 'package:gamedesk/common.dart';
+import 'package:gamedesk/models/platform_model.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 
@@ -606,6 +606,9 @@ class QualityMonitor extends StatelessWidget {
                       _row(
                           "Codec", qualityMonitorModel.data.codecFormat ?? '-'),
                       _row("Chroma", qualityMonitorModel.data.chroma ?? '-'),
+                      if (qualityMonitorModel.webrtcTransport != null)
+                        _row("Transport",
+                            qualityMonitorModel.webrtcTransport!),
                     ],
                   ),
                 )
